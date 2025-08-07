@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Absensi Profesional - Sekolah Unggulan</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+    }
+    
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --secondary: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --light: #f8fafc;
+      --dark: #1e293b;
+      --gray: #64748b;
+      --border: #e2e8f0;
+      --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    
+    body {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      color: var(--dark);
+      min-height: 100vh;
+      padding: 20px;
+      touch-action: manipulation;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+    }
+    
+    header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 25px 30px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    header::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+      transform: rotate(30deg);
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .logo i {
+      font-size: 2.5rem;
+      background: rgba(255, 255, 255, 0.2);
+      width: 70px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      backdrop-filter: blur(5px);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .subtitle {
+      font-size: 1rem;
+      opacity: 0.9;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    
+    .app-content {
+      padding: 25px;
+    }
+    
+    .form-section {
+      margin-bottom: 30px;
+      background: #f9fafb;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    
+    .section-title {
+      display: flex;
+      align-items: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--primary-dark);
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+    
+    .section-title i {
+      margin-right: 10px;
+      background: var(--primary);
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .input-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--dark);
+      font-size: 0.95rem;
+    }
+    
+    .input-with-icon {
+      position: relative;
+    }
+    
+    .input-with-icon i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray);
+      font-size: 1.1rem;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 14px 20px 14px 50px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-size: 1rem;
+      transition: all 0.3s;
+      background: var(--light);
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    }
+    
+    .token-generator {
+      display: flex;
+      gap: 10px;
+      margin-top: 5px;
+    }
+    
+    .token-generator input {
+      flex: 1;
+    }
+    
+    .token-generator button {
+      padding: 0 15px;
+      border-radius: 10px;
+      background: #e0f2fe;
+      color: var(--primary);
+      border: 1px solid #bae6fd;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .token-generator button:hover {
+      background: #bae6fd;
+    }
+    
+    .ttd-container {
+      background: var(--light);
+      border-radius: 12px;
+      padding: 15px;
+      border: 2px solid var(--border);
+    }
+    
+    canvas {
+      display: block;
+      width: 100%;
+      height: 120px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      touch-action: none;
+      margin-bottom: 10px;
+    }
+    
+    .gps-info {
+      background: var(--light);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 25px 0;
+      border: 2px solid var(--border);
+    }
+    
+    .gps-status {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .gps-indicator {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--danger);
+      margin-right: 10px;
+      transition: all 0.3s;
+    }
+    
+    .gps-indicator.active {
+      background: var(--secondary);
+      box-shadow: 0 0 10px var(--secondary);
+      animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    
+    .gps-details {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px dashed var(--border);
+      display: none;
+    }
+    
+    .gps-details.active {
+      display: block;
+    }
+    
+    .gps-row {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    
+    .gps-label {
+      width: 120px;
+      font-weight: 600;
+      color: var(--gray);
+    }
+    
+    .action-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin: 25px 0;
+    }
+    
+    button {
+      padding: 16px;
+      border-radius: 12px;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(to right, var(--primary), var(--primary-dark));
+      color: white;
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 7px 14px rgba(37, 99, 235, 0.2);
+    }
+    
+    .btn-secondary {
+      background: var(--light);
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(37, 99, 235, 0.05);
+    }
+    
+    .btn-warning {
+      background: var(--warning);
+      color: white;
+    }
+    
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+    
+    .rekap-section {
+      background: var(--light);
+      border-radius: 12px;
+      padding: 20px;
+      border: 2px solid var(--border);
+      margin-top: 30px;
+    }
+    
+    .rekap-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    th {
+      background: var(--primary);
+      color: white;
+      text-align: left;
+      padding: 12px 15px;
+      font-weight: 600;
+    }
+    
+    td {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    tr:nth-child(even) {
+      background: rgba(241, 245, 249, 0.5);
+    }
+    
+    tr:hover {
+      background: rgba(224, 242, 254, 0.3);
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 30px;
+      color: var(--gray);
+    }
+    
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      color: #cbd5e1;
+    }
+    
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--dark);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 50px;
+      font-weight: 500;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .toast.show {
+      opacity: 1;
+    }
+    
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+    
+    .photo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .camera-preview {
+      width: 100%;
+      max-width: 300px;
+      height: 200px;
+      background: #f1f5f9;
+      border-radius: 12px;
+      border: 2px dashed #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .camera-preview video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+    
+    .camera-preview img {
+      max-width: 100%;
+      max-height: 100%;
+      display: none;
+    }
+    
+    .camera-controls {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      max-width: 300px;
+    }
+    
+    .camera-controls button {
+      flex: 1;
+    }
+    
+    .loading {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .permission-info {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+      color: #92400e;
+    }
+    
+    .permission-info i {
+      margin-right: 10px;
+      color: #f59e0b;
+    }
+    
+    .gps-help {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+      color: #166534;
+    }
+    
+    .gps-help i {
+      margin-right: 10px;
+      color: #22c55e;
+    }
+    
+    .browser-support {
+      background: #dbeafe;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 15px 0;
+      color: #1e40af;
+    }
+    
+    .browser-support i {
+      margin-right: 10px;
+      color: #3b82f6;
+    }
+    
+    .map-container {
+      height: 250px;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 15px;
+      border: 2px solid var(--border);
+      display: none;
+    }
+    
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+    
+    .map-info {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    
+    .map-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    
+    .map-link:hover {
+      text-decoration: underline;
+    }
+    
+    @media (max-width: 600px) {
+      .action-buttons {
+        grid-template-columns: 1fr;
+      }
+      
+      header {
+        padding: 20px 15px;
+      }
+      
+      .app-content {
+        padding: 20px 15px;
+      }
+      
+      .gps-row {
+        flex-direction: column;
+        gap: 5px;
+      }
+      
+      .gps-label {
+        width: 100%;
+      }
+      
+      .camera-preview {
+        height: 180px;
+      }
+      
+      .token-generator {
+        flex-direction: column;
+      }
+      
+      .map-container {
+        height: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <i class="fas fa-user-check"></i>
+        <div>
+          <h1>ABSENSI DIGITAL SEKOLAH</h1>
+          <div class="subtitle">Sistem absensi profesional untuk siswa dan guru berbasis lokasi GPS</div>
+        </div>
+      </div>
+    </header>
+    
+    <div class="app-content">
+      <div class="browser-support">
+        <i class="fas fa-info-circle"></i>
+        <strong>Kompatibilitas Terjamin:</strong> Aplikasi ini didesain untuk berjalan optimal di semua perangkat dan browser. Pastikan Anda menggunakan browser versi terbaru.
+      </div>
+      
+      <div class="form-section">
+        <div class="section-title">
+          <i class="fas fa-user"></i>
+          <span>Identitas Pengguna</span>
+        </div>
+        
+        <div class="input-group">
+          <label for="nama"><i class="fas fa-signature"></i> Nama Lengkap</label>
+          <div class="input-with-icon">
+            <i class="fas fa-user"></i>
+            <input type="text" id="nama" placeholder="Masukkan nama lengkap">
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label for="kode"><i class="fas fa-id-card"></i> Kode Identitas</label>
+          <div class="input-with-icon">
+            <i class="fas fa-key"></i>
+            <input type="text" id="kode" placeholder="Contoh: GURU001 atau SISWA123">
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label for="token"><i class="fas fa-lock"></i> Token Absensi</label>
+          <div class="input-with-icon">
+            <i class="fas fa-shield-alt"></i>
+            <input type="text" id="token" placeholder="Masukkan token harian">
+          </div>
+          <div class="token-generator">
+            <input type="text" id="token-display" readonly value="Token akan muncul di sini">
+            <button onclick="generateToken()"><i class="fas fa-sync-alt"></i> Generate</button>
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label for="absenType"><i class="fas fa-calendar-check"></i> Jenis Absensi</label>
+          <div class="input-with-icon">
+            <i class="fas fa-tasks"></i>
+            <select id="absenType">
+              <option value="MASUK">Absen Masuk</option>
+              <option value="PULANG">Absen Pulang</option>
+              <option value="IZIN">Izin</option>
+              <option value="SAKIT">Sakit</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <div class="section-title">
+          <i class="fas fa-camera"></i>
+          <span>Verifikasi Kehadiran</span>
+        </div>
+        
+        <div class="input-group">
+          <label><i class="fas fa-camera"></i> Foto Selfie</label>
+          <div class="photo-container">
+            <div class="camera-preview">
+              <i class="fas fa-camera" id="cameraIcon" style="font-size: 3rem; color: #cbd5e1;"></i>
+              <video id="videoPreview" autoplay playsinline></video>
+              <img id="photoPreview" alt="Preview Foto">
+            </div>
+            <div class="camera-controls">
+              <button class="btn-secondary" onclick="openCamera()" id="openCameraBtn">
+                <i class="fas fa-camera"></i> Buka Kamera
+              </button>
+              <button class="btn-primary" id="captureBtn" onclick="capturePhoto()">
+                <i class="fas fa-camera"></i> Ambil Foto
+              </button>
+            </div>
+          </div>
+          <div class="permission-info">
+            <i class="fas fa-exclamation-circle"></i>
+            Jika kamera tidak muncul, pastikan Anda telah mengizinkan akses kamera di browser Anda.
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label><i class="fas fa-signature"></i> Tanda Tangan Digital</label>
+          <div class="ttd-container">
+            <canvas id="ttd"></canvas>
+            <div style="display: flex; gap: 10px;">
+              <button class="btn-danger" onclick="clearTTD()" style="flex: 1;">
+                <i class="fas fa-eraser"></i> Hapus
+              </button>
+              <button class="btn-secondary" onclick="saveSignature()" style="flex: 1;">
+                <i class="fas fa-save"></i> Simpan
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="gps-info">
+        <div class="section-title">
+          <i class="fas fa-map-marker-alt"></i>
+          <span>Verifikasi Lokasi</span>
+        </div>
+        
+        <div class="gps-status">
+          <div class="gps-indicator" id="gpsIndicator"></div>
+          <span id="gpsStatus">Menunggu aktivasi GPS...</span>
+        </div>
+        
+        <div class="gps-details" id="gpsDetails">
+          <div class="gps-row">
+            <div class="gps-label">Status:</div>
+            <div id="gpsAccuracy">-</div>
+          </div>
+          <div class="gps-row">
+            <div class="gps-label">Koordinat:</div>
+            <div id="gpsCoords">-</div>
+          </div>
+          <div class="gps-row">
+            <div class="gps-label">Jarak Sekolah:</div>
+            <div id="gpsDistance">-</div>
+          </div>
+          <div class="gps-row">
+            <div class="gps-label">Lokasi Sekolah:</div>
+            <div id="schoolCoords">-6.522843, 106.695348 (SMKN 1 Gunung Putri)</div>
+          </div>
+        </div>
+        
+        <div class="map-container" id="mapContainer">
+          <div id="map"></div>
+          <div class="map-info">
+            <span>Lokasi saat ini</span>
+            <a href="#" id="mapLink" target="_blank" class="map-link">Buka di Google Maps</a>
+          </div>
+        </div>
+        
+        <div class="action-buttons">
+          <button class="btn-primary" onclick="getLocation()" id="gpsBtn">
+            <i class="fas fa-location-dot"></i> Aktifkan GPS
+          </button>
+          <button class="btn-secondary" onclick="resetGPS()">
+            <i class="fas fa-sync-alt"></i> Reset GPS
+          </button>
+        </div>
+        
+        <div class="gps-help">
+          <i class="fas fa-info-circle"></i>
+          Jika GPS tidak terdeteksi, pastikan:
+          <ul style="margin-left: 20px; margin-top: 8px;">
+            <li>Lokasi di perangkat Anda sudah diaktifkan</li>
+            <li>Browser memiliki izin untuk mengakses lokasi</li>
+            <li>Sinyal GPS dalam kondisi baik</li>
+            <li>Aplikasi diakses melalui HTTPS</li>
+          </ul>
+        </div>
+      </div>
+      
+      <button class="btn-primary" onclick="submitAbsensi()" id="submitBtn" disabled>
+        <i class="fas fa-paper-plane"></i> Kirim Absensi
+      </button>
+      
+      <div class="rekap-section">
+        <div class="rekap-header">
+          <div class="section-title">
+            <i class="fas fa-history"></i>
+            <span>Rekap Absensi Terakhir</span>
+          </div>
+          <button class="btn-warning" onclick="toggleRekap()" id="toggleRekap">
+            <i class="fas fa-eye"></i> Lihat
+          </button>
+        </div>
+        
+        <div id="rekapTable" style="display: none;">
+          <table>
+            <thead>
+              <tr>
+                <th>Nama</th>
+                <th>Jenis</th>
+                <th>Jarak</th>
+                <th>Waktu</th>
+              </tr>
+            </thead>
+            <tbody id="rekapBody">
+              <!-- Data akan diisi oleh JavaScript -->
+            </tbody>
+          </table>
+        </div>
+        
+        <div id="rekapEmpty" class="empty-state">
+          <i class="fas fa-inbox"></i>
+          <p>Belum ada data absensi</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>© 2023 Sistem Absensi Digital Sekolah | Versi 4.0 | Kompatibel Semua Perangkat</p>
+    </div>
+  </div>
+  
+  <div class="toast" id="toast">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMessage">Pesan toast</span>
+  </div>
+
+  <script src="https://cdn.polyfill.io/v3/polyfill.min.js?features=default,es6,es2015,es2016,es2017,es2018,es2019,Object.assign,Array.prototype.includes,Array.prototype.forEach,Array.prototype.map,Array.prototype.filter,Array.prototype.reduce,Element.prototype.classList,Element.prototype.closest,Element.prototype.matches,Element.prototype.remove,Element.prototype.append,Element.prototype.prepend,Element.prototype.after,Element.prototype.before,Element.prototype.replaceWith,Element.prototype.toggleAttribute,NodeList.prototype.forEach,NodeList.prototype.%40iterator,URL,URLSearchParams,Promise,fetch,Intl,Intl.~locale.id,requestAnimationFrame"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <script>
+    // Inisialisasi variabel
+    var canvas = document.getElementById("ttd");
+    var ctx = canvas.getContext("2d");
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#1e293b";
+    var isDrawing = false;
+    var lastX = 0, lastY = 0;
+    
+    // Elemen kamera
+    var video = document.getElementById('videoPreview');
+    var photoPreview = document.getElementById('photoPreview');
+    var cameraIcon = document.getElementById('cameraIcon');
+    var openCameraBtn = document.getElementById('openCameraBtn');
+    var captureBtn = document.getElementById('captureBtn');
+    
+    // Lokasi sekolah (permanen)
+    var SEKOLAH_LAT = -6.522843;
+    var SEKOLAH_LON = 106.695348;
+    
+    // Status aplikasi
+    var currentLocation = null;
+    var signatureSaved = false;
+    var photoTaken = false;
+    var mediaStream = null;
+    var map = null;
+    var schoolMarker = null;
+    var userMarker = null;
+    
+    // Setup canvas tanda tangan
+    function setupCanvas() {
+      var rect = canvas.getBoundingClientRect();
+      var dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Tambahkan placeholder
+      ctx.font = "14px Arial";
+      ctx.fillStyle = "#94a3b8";
+      ctx.textAlign = "center";
+      ctx.fillText("Gambar tanda tangan Anda di area ini", canvas.width/(2*dpr), canvas.height/(2*dpr));
+    }
+    
+    // Fungsi untuk tanda tangan
+    function startDrawing(e) {
+      isDrawing = true;
+      var pos = getTouchPos(e);
+      lastX = pos.x;
+      lastY = pos.y;
+    }
+    
+    function draw(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+      
+      var pos = getTouchPos(e);
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+      lastX = pos.x;
+      lastY = pos.y;
+    }
+    
+    function getTouchPos(e) {
+      var rect = canvas.getBoundingClientRect();
+      var clientX, clientY;
+      
+      if (e.type.includes('touch')) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+      }
+      
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+    
+    function clearTTD() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      signatureSaved = false;
+      showToast("Tanda tangan telah dihapus");
+    }
+    
+    function saveSignature() {
+      if (!isCanvasEmpty()) {
+        signatureSaved = true;
+        showToast("Tanda tangan berhasil disimpan");
+        checkSubmitButton();
+      } else {
+        showToast("Silakan buat tanda tangan terlebih dahulu");
+      }
+    }
+    
+    function isCanvasEmpty() {
+      var blank = document.createElement('canvas');
+      blank.width = canvas.width;
+      blank.height = canvas.height;
+      return canvas.toDataURL() === blank.toDataURL();
+    }
+    
+    // Fungsi GPS dengan fallback
+    function getLocation() {
+      showToast("Mengaktifkan GPS...");
+      updateGpsStatus("Mendapatkan lokasi...", false);
+      document.getElementById("gpsBtn").innerHTML = '<span class="loading"></span> Memproses...';
+      document.getElementById("gpsBtn").disabled = true;
+      
+      if (!navigator.geolocation) {
+        updateGpsStatus("GPS tidak didukung di perangkat ini", false);
+        showToast("GPS tidak didukung");
+        document.getElementById("gpsBtn").disabled = false;
+        document.getElementById("gpsBtn").innerHTML = '<i class="fas fa-location-dot"></i> Aktifkan GPS';
+        return;
+      }
+      
+      // Options untuk meningkatkan akurasi
+      var options = {
+        enableHighAccuracy: true,
+        timeout: 25000,  // Tambah timeout
+        maximumAge: 0
+      };
+      
+      navigator.geolocation.getCurrentPosition(
+        successCallback, 
+        errorCallback, 
+        options
+      );
+    }
+    
+    function successCallback(position) {
+      var lat = position.coords.latitude;
+      var lon = position.coords.longitude;
+      var accuracy = position.coords.accuracy;
+      var jarak = hitungJarak(lat, lon, SEKOLAH_LAT, SEKOLAH_LON);
+      
+      currentLocation = {
+        lat: lat,
+        lon: lon,
+        accuracy: accuracy,
+        jarak: jarak,
+        mapsLink: `https://www.google.com/maps?q=${lat},${lon}`
+      };
+      
+      updateGpsStatus("Lokasi berhasil didapatkan", true);
+      document.getElementById("gpsCoords").textContent = lat.toFixed(6) + ", " + lon.toFixed(6);
+      document.getElementById("gpsAccuracy").textContent = "Akurat hingga " + Math.round(accuracy) + " meter";
+      document.getElementById("gpsDistance").textContent = jarak + " meter dari sekolah";
+      document.getElementById("gpsDetails").classList.add("active");
+      document.getElementById("mapLink").href = currentLocation.mapsLink;
+      
+      // Tampilkan peta
+      initMap(lat, lon);
+      
+      showToast("Lokasi ditemukan! Jarak: " + jarak + " meter");
+      checkSubmitButton();
+      
+      document.getElementById("gpsBtn").disabled = false;
+      document.getElementById("gpsBtn").innerHTML = '<i class="fas fa-check-circle"></i> GPS Aktif';
+    }
+    
+    function errorCallback(error) {
+      var message = "";
+      
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          message = "Izin lokasi ditolak. Harap aktifkan lokasi di pengaturan perangkat Anda.";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          message = "Informasi lokasi tidak tersedia. Pastikan GPS aktif dan sinyal baik.";
+          break;
+        case error.TIMEOUT:
+          message = "Permintaan lokasi melebihi batas waktu. Coba lagi.";
+          break;
+        default:
+          message = "Terjadi kesalahan saat mengambil lokasi.";
+      }
+      
+      updateGpsStatus(message, false);
+      showToast(message);
+      currentLocation = null;
+      checkSubmitButton();
+      
+      document.getElementById("gpsBtn").disabled = false;
+      document.getElementById("gpsBtn").innerHTML = '<i class="fas fa-location-dot"></i> Aktifkan GPS';
+    }
+    
+    function resetGPS() {
+      currentLocation = null;
+      updateGpsStatus("Menunggu aktivasi GPS...", false);
+      document.getElementById("gpsDetails").classList.remove("active");
+      document.getElementById("mapContainer").style.display = "none";
+      showToast("GPS telah direset");
+      checkSubmitButton();
+    }
+    
+    function updateGpsStatus(message, isActive) {
+      document.getElementById("gpsStatus").textContent = message;
+      var indicator = document.getElementById("gpsIndicator");
+      indicator.classList.toggle("active", isActive);
+      
+      var gpsBtn = document.getElementById("gpsBtn");
+      if (isActive) {
+        gpsBtn.innerHTML = '<i class="fas fa-check-circle"></i> GPS Aktif';
+        gpsBtn.classList.add("btn-secondary");
+        gpsBtn.classList.remove("btn-primary");
+      } else {
+        gpsBtn.innerHTML = '<i class="fas fa-location-dot"></i> Aktifkan GPS';
+        gpsBtn.classList.add("btn-primary");
+        gpsBtn.classList.remove("btn-secondary");
+      }
+    }
+    
+    // Fungsi hitung jarak (Haversine formula) - versi ES5
+    function hitungJarak(lat1, lon1, lat2, lon2) {
+      var R = 6371e3; // Earth radius in meters
+      var φ1 = lat1 * Math.PI/180;
+      var φ2 = lat2 * Math.PI/180;
+      var Δφ = (lat2-lat1) * Math.PI/180;
+      var Δλ = (lon2-lon1) * Math.PI/180;
+      
+      var a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ/2) * Math.sin(Δλ/2);
+      var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      
+      return Math.round(R * c);
+    }
+    
+    // Fungsi inisialisasi peta
+    function initMap(lat, lon) {
+      // Tampilkan kontainer peta
+      document.getElementById("mapContainer").style.display = "block";
+      
+      // Hapus peta yang ada jika sudah ada
+      if (map) {
+        map.off();
+        map.remove();
+      }
+      
+      // Buat peta baru
+      map = L.map('map').setView([lat, lon], 17);
+      
+      // Tambahkan tile layer
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+      
+      // Tambahkan marker untuk lokasi pengguna
+      userMarker = L.marker([lat, lon], {
+        title: 'Lokasi Anda',
+        icon: L.icon({
+          iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: [1, -34],
+          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+          shadowSize: [41, 41]
+        })
+      }).addTo(map)
+        .bindPopup('Lokasi Anda')
+        .openPopup();
+      
+      // Tambahkan marker untuk lokasi sekolah
+      schoolMarker = L.marker([SEKOLAH_LAT, SEKOLAH_LON], {
+        title: 'Sekolah',
+        icon: L.icon({
+          iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: [1, -34],
+          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+          shadowSize: [41, 41]
+        })
+      }).addTo(map)
+        .bindPopup('SMKN 1 Gunung Putri')
+        .openPopup();
+      
+      // Tambahkan garis penghubung
+      var polyline = L.polyline([
+        [lat, lon],
+        [SEKOLAH_LAT, SEKOLAH_LON]
+      ], {
+        color: 'red',
+        weight: 3,
+        dashArray: '5, 10'
+      }).addTo(map);
+      
+      // Sesuaikan zoom untuk menampilkan kedua marker
+      var bounds = L.latLngBounds(
+        [lat, lon],
+        [SEKOLAH_LAT, SEKOLAH_LON]
+      );
+      map.fitBounds(bounds, {padding: [50, 50]});
+    }
+    
+    // Fungsi kamera yang diperbaiki untuk semua perangkat
+    function openCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showToast("Browser tidak mendukung akses kamera");
+        return;
+      }
+      
+      // Hentikan stream sebelumnya jika ada
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(function(track) {
+          track.stop();
+        });
+      }
+      
+      // Tampilkan indikator loading
+      openCameraBtn.innerHTML = '<span class="loading"></span> Memuat...';
+      openCameraBtn.disabled = true;
+      
+      // Konfigurasi kamera untuk kompatibilitas luas
+      var constraints = {
+        video: {
+          facingMode: "user",
+          width: { min: 320, ideal: 1280, max: 1920 },
+          height: { min: 240, ideal: 720, max: 1080 }
+        }
+      };
+      
+      // Fallback untuk perangkat yang tidak mendukung constraints modern
+      if (!navigator.mediaDevices.getSupportedConstraints().facingMode) {
+        constraints = { video: true };
+      }
+      
+      navigator.mediaDevices.getUserMedia(constraints)
+      .then(function(stream) {
+        mediaStream = stream;
+        video.srcObject = stream;
+        video.style.display = 'block';
+        cameraIcon.style.display = 'none';
+        photoPreview.style.display = 'none';
+        
+        // Tampilkan tombol capture
+        captureBtn.style.display = "flex";
+        showToast("Kamera siap digunakan");
+        
+        openCameraBtn.innerHTML = '<i class="fas fa-camera"></i> Tutup Kamera';
+        openCameraBtn.disabled = false;
+        
+        // Play video setelah metadata dimuat (untuk beberapa perangkat)
+        video.onloadedmetadata = function() {
+          video.play();
+        };
+      })
+      .catch(function(err) {
+        console.error("Error accessing camera: ", err);
+        
+        // Pesan error spesifik
+        var errorMsg = "Tidak dapat mengakses kamera";
+        if (err.name === "NotAllowedError") {
+          errorMsg = "Izin kamera ditolak. Harap izinkan akses kamera di pengaturan browser.";
+        } else if (err.name === "NotFoundError" || err.name === "OverconstrainedError") {
+          errorMsg = "Kamera tidak ditemukan. Pastikan perangkat memiliki kamera depan.";
+        } else if (err.name === "NotReadableError") {
+          errorMsg = "Kamera sedang digunakan oleh aplikasi lain. Tutup aplikasi lain yang menggunakan kamera.";
+        }
+        
+        showToast(errorMsg);
+        
+        openCameraBtn.innerHTML = '<i class="fas fa-camera"></i> Buka Kamera';
+        openCameraBtn.disabled = false;
+      });
+    }
+    
+    function capturePhoto() {
+      if (!mediaStream) {
+        showToast("Silakan buka kamera terlebih dahulu");
+        return;
+      }
+      
+      try {
+        var canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        var ctx = canvas.getContext('2d');
+        
+        // Gambar video ke canvas
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        var dataUrl = canvas.toDataURL('image/png');
+        photoPreview.src = dataUrl;
+        photoPreview.style.display = 'block';
+        video.style.display = 'none';
+        
+        photoTaken = true;
+        showToast("Foto berhasil diambil");
+        checkSubmitButton();
+      } catch (e) {
+        console.error("Error capturing photo: ", e);
+        showToast("Gagal mengambil foto. Coba lagi.");
+        return;
+      }
+      
+      // Hentikan stream kamera
+      try {
+        mediaStream.getTracks().forEach(function(track) {
+          track.stop();
+        });
+      } catch (e) {
+        console.error("Error stopping tracks: ", e);
+      }
+      
+      mediaStream = null;
+      captureBtn.style.display = "none";
+      openCameraBtn.innerHTML = '<i class="fas fa-camera"></i> Buka Kamera';
+    }
+    
+    // Generate token acak
+    function generateToken() {
+      var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      var token = '';
+      for (var i = 0; i < 8; i++) {
+        token += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      document.getElementById('token').value = token;
+      document.getElementById('token-display').value = token;
+      showToast("Token berhasil digenerate");
+      checkSubmitButton();
+    }
+    
+    // Fungsi validasi dan submit
+    function checkSubmitButton() {
+      var nama = document.getElementById("nama").value.trim();
+      var kode = document.getElementById("kode").value.trim();
+      var token = document.getElementById("token").value.trim();
+      var absenType = document.getElementById("absenType").value;
+      
+      var valid = nama && kode && token && currentLocation && signatureSaved && photoTaken;
+      document.getElementById("submitBtn").disabled = !valid;
+    }
+    
+    function submitAbsensi() {
+      var nama = document.getElementById("nama").value.trim();
+      var kode = document.getElementById("kode").value.trim();
+      var token = document.getElementById("token").value.trim();
+      var absenType = document.getElementById("absenType").value;
+      
+      if (!nama || !kode || !token) {
+        showToast("Harap lengkapi semua field identitas");
+        return;
+      }
+      
+      if (!currentLocation) {
+        showToast("Harap aktifkan GPS terlebih dahulu");
+        return;
+      }
+      
+      if (!signatureSaved) {
+        showToast("Harap simpan tanda tangan terlebih dahulu");
+        return;
+      }
+      
+      if (!photoTaken) {
+        showToast("Harap ambil foto terlebih dahulu");
+        return;
+      }
+      
+      // Simpan ke rekap
+      saveToHistory({
+        nama: nama,
+        kode: kode,
+        jenis: absenType,
+        jarak: currentLocation.jarak,
+        waktu: new Date().toLocaleString('id-ID')
+      });
+      
+      // Kirim ke WhatsApp
+      sendToWhatsApp(nama, kode, absenType, currentLocation.jarak, currentLocation.mapsLink);
+      
+      showToast("Absensi " + absenType + " berhasil dikirim!");
+      
+      // Reset form
+      document.getElementById("nama").value = "";
+      document.getElementById("kode").value = "";
+      document.getElementById("token").value = "";
+      clearTTD();
+      photoPreview.style.display = "none";
+      cameraIcon.style.display = "block";
+      photoTaken = false;
+      checkSubmitButton();
+    }
+    
+    // Kirim ke WhatsApp - PERBAIKAN URL
+    function sendToWhatsApp(nama, kode, jenis, jarak, mapsLink) {
+      var phone = "6281282847074";
+      var waktu = new Date().toLocaleString('id-ID');
+      
+      // Format pesan dengan lebih baik
+      var message = 
+        "📝 *ABSENSI SEKOLAH* 📝\n\n" +
+        "👤 *Nama:* " + nama + "\n" +
+        "🔢 *Kode:* " + kode + "\n" +
+        "📋 *Jenis:* " + jenis + "\n" +
+        "⏱️ *Waktu:* " + waktu + "\n" +
+        "📍 *Jarak dari sekolah:* " + jarak + " meter\n" +
+        "🗺️ *Lokasi:* " + mapsLink + "\n\n" +
+        "_Pesan ini dikirim otomatis melalui Sistem Absensi Digital Sekolah_";
+      
+      var encodedMessage = encodeURIComponent(message);
+      // Gunakan URL https://wa.me/ yang benar
+      var whatsappUrl = "https://wa.me/" + phone + "?text=" + encodedMessage;
+      
+      // Buka WhatsApp di tab baru
+      window.open(whatsappUrl, '_blank');
+    }
+    
+    // Fungsi rekap data
+    function saveToHistory(data) {
+      var history = JSON.parse(localStorage.getItem('absensiHistory')) || [];
+      history.unshift(data);
+      
+      // Simpan maksimal 20 entri
+      if (history.length > 20) {
+        history = history.slice(0, 20);
+      }
+      
+      localStorage.setItem('absensiHistory', JSON.stringify(history));
+      loadHistory();
+    }
+    
+    function loadHistory() {
+      var history = JSON.parse(localStorage.getItem('absensiHistory')) || [];
+      var tbody = document.getElementById("rekapBody");
+      var emptyState = document.getElementById("rekapEmpty");
+      var table = document.getElementById("rekapTable");
+      
+      if (history.length === 0) {
+        emptyState.style.display = "block";
+        table.style.display = "none";
+        return;
+      }
+      
+      emptyState.style.display = "none";
+      table.style.display = "block";
+      
+      tbody.innerHTML = "";
+      for (var i = 0; i < Math.min(history.length, 5); i++) {
+        var item = history[i];
+        var row = document.createElement("tr");
+        row.innerHTML = 
+          '<td>' + item.nama + '</td>' +
+          '<td>' + item.jenis + '</td>' +
+          '<td>' + item.jarak + ' m</td>' +
+          '<td>' + item.waktu + '</td>';
+        tbody.appendChild(row);
+      }
+    }
+    
+    function toggleRekap() {
+      var table = document.getElementById("rekapTable");
+      var button = document.getElementById("toggleRekap");
+      
+      if (table.style.display === "none") {
+        table.style.display = "block";
+        button.innerHTML = '<i class="fas fa-eye-slash"></i> Sembunyikan';
+      } else {
+        table.style.display = "none";
+        button.innerHTML = '<i class="fas fa-eye"></i> Lihat';
+      }
+    }
+    
+    // Fungsi utilitas
+    function showToast(message) {
+      var toast = document.getElementById("toast");
+      var toastMessage = document.getElementById("toastMessage");
+      
+      toastMessage.textContent = message;
+      toast.classList.add("show");
+      
+      setTimeout(function() {
+        toast.classList.remove("show");
+      }, 3000);
+    }
+    
+    // Event listeners
+    function initEventListeners() {
+      // Input validation
+      document.getElementById("nama").addEventListener("input", checkSubmitButton);
+      document.getElementById("kode").addEventListener("input", checkSubmitButton);
+      document.getElementById("token").addEventListener("input", checkSubmitButton);
+      document.getElementById("absenType").addEventListener("change", checkSubmitButton);
+      
+      // Canvas events
+      canvas.addEventListener("mousedown", startDrawing);
+      canvas.addEventListener("mousemove", draw);
+      canvas.addEventListener("mouseup", function() { isDrawing = false; });
+      canvas.addEventListener("mouseleave", function() { isDrawing = false; });
+      
+      canvas.addEventListener("touchstart", function(e) {
+        e.preventDefault();
+        startDrawing(e);
+      });
+      canvas.addEventListener("touchmove", function(e) {
+        e.preventDefault();
+        draw(e);
+      });
+      canvas.addEventListener("touchend", function() { isDrawing = false; });
+    }
+    
+    // Inisialisasi saat halaman dimuat
+    window.onload = function() {
+      setupCanvas();
+      initEventListeners();
+      loadHistory();
+      
+      // Sembunyikan tombol capture secara default
+      captureBtn.style.display = "none";
+      
+      // Untuk demo, tambahkan beberapa data dummy
+      if (!localStorage.getItem('absensiHistory')) {
+        var dummyData = [
+          {nama: "Soni Haji", kode: "GURU001", jenis: "MASUK", jarak: 120, waktu: "06/09/2023 06:58"},
+          {nama: "Budi Santoso", kode: "SISWA123", jenis: "MASUK", jarak: 85, waktu: "06/09/2023 07:02"},
+          {nama: "Ani Wijaya", kode: "GURU045", jenis: "MASUK", jarak: 210, waktu: "06/09/2023 06:45"}
+        ];
+        localStorage.setItem('absensiHistory', JSON.stringify(dummyData));
+        loadHistory();
+      }
+      
+      // Coba otomatis aktifkan GPS
+      setTimeout(function() {
+        getLocation();
+      }, 1000);
+      
+      // Coba otomatis buka kamera
+      setTimeout(function() {
+        openCamera();
+      }, 1500);
+    };
+  </script>
+</body>
+</html>
